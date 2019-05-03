@@ -1,0 +1,10 @@
+<resources>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="app_name">Madgwick</string>
+    <string name="categories">Choose category</string>
+    <string name="specs">Specifications</string>
+    <string name="help">Information</string>
+    <string name="help_content">This program is designed to retrieve orientation from gyroscope, accelerometer and magnetometer using Madgwick\'s filter.\n\n© 2019 Daniil Denisov</string>
+</resources>
