@@ -1,56 +1,51 @@
 package com.example.madgwick;
 
-public class MadgwickFilter
+class MadgwickFilter
 {
-    static protected int call_count;
     static protected double[] a, w, m, b = {0, 1, 0, 1};
     static protected double dt;
-    static protected double[] q_est;
-    static protected double[] dq_est, dq_w, dq_error;
+    static private double[] q_est;
+    static private double[] dq_est, dq_w, dq_error;
     static private double betta = 1, sigma = 1;
     static private double norm = 0;
 
-    static protected double[] eulers;
+    static private double[] eulers;
 
-    static void Filtrate()
+    static double[] Filtrate()
     {
-        call_count++;
-        if (call_count >= 2)
-        {
-            //initial assumption
-            if (call_count == 2)
-                q_est = Product(dt, w);
+        //initial assumption
+        q_est = Product(dt, w);
 
-            //normalizing accelerometer measurements
-            norm = Norm(a);
-            if (norm != 0)
-                a = Product(norm, a);
+        //normalizing accelerometer measurements
+        norm = Norm(a);
+        if (norm != 0)
+            a = Product(norm, a);
 
-            //normalizing magnetometer measurements
-            norm = Norm(m);
-            if (norm != 0)
-                m = Product(norm, m);
+        //normalizing magnetometer measurements
+        norm = Norm(m);
+        if (norm != 0)
+            m = Product(norm, m);
 
-            //main algorithm
-            GetOrientationErrorRate();
-            GetGyroscopeOrientation();
-            Fuse();
+        //main algorithm
+        GetOrientationErrorRate();
+        GetGyroscopeOrientation();
+        Fuse();
 
-            //normalizing resulting quaternion
-            norm = Norm(q_est);
-            if (norm != 0)
-                q_est = Product(norm, q_est);
+        //normalizing resulting quaternion
+        norm = Norm(q_est);
+        if (norm != 0)
+            q_est = Product(norm, q_est);
 
-            //converting quaternion to Euler angles
-            eulers = new double[3];
+        //converting quaternion to Euler angles
+        eulers = new double[3];
 
-            eulers[0] = Math.atan2(2*q_est[2]*q_est[3] - 2*q_est[0]*q_est[1], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[3], 2) - 1);
-            double expr = 2*q_est[1]*q_est[3] + 2*q_est[0]*q_est[2];
-            if (Math.abs(expr) > 1)
-                eulers[1] = Math.signum(expr) * Math.PI / 2;
-            else
-                eulers[1] = -Math.asin(expr);
-            eulers[2] = Math.atan2(2*q_est[1]*q_est[2] - 2*q_est[0]*q_est[3], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[1], 2) - 1);
+        eulers[0] = Math.atan2(2*q_est[2]*q_est[3] - 2*q_est[0]*q_est[1], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[3], 2) - 1);
+        double expr = 2*q_est[1]*q_est[3] + 2*q_est[0]*q_est[2];
+        if (Math.abs(expr) > 1)
+            eulers[1] = Math.signum(expr) * Math.PI / 2;
+        else
+            eulers[1] = -Math.asin(expr);
+        eulers[2] = Math.atan2(2*q_est[1]*q_est[2] - 2*q_est[0]*q_est[3], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[1], 2) - 1);
 
             /*eulers[0] = Math.atan2(2*q_est[2]*q_est[3] + 2*q_est[0]*q_est[1], 1 - 2*Math.pow(q_est[1], 2) - 2*Math.pow(q_est[2], 2));
 
@@ -62,11 +57,7 @@ public class MadgwickFilter
 
             eulers[2] = Math.atan2(2*q_est[1]*q_est[2] + 2*q_est[0]*q_est[3], 1 - 2*Math.pow(q_est[2], 2) - 2*Math.pow(q_est[3], 2));*/
 
-            //outputting results on the screen
-            MainActivity.X.setText("X: " + eulers[0]);
-            MainActivity.Y.setText("Y: " + eulers[1]);
-            MainActivity.Z.setText("Z: " + eulers[2]);
-        }
+        return eulers;
     }
 
     static private void GetOrientationErrorRate()
@@ -133,10 +124,7 @@ public class MadgwickFilter
         w = Sum(w, Product(-1, w_bias));
 
         //retrieving orientation change rate based on gyroscope measurement
-        if (call_count <= 2)
-            dq_w = w;
-        else
-            dq_w = QuatProduct(Product(0.5, q_est), w);
+        dq_w = QuatProduct(Product(0.5, q_est), w);
     }
 
     static private void Fuse()
@@ -211,8 +199,8 @@ public class MadgwickFilter
     static private double Norm(double[] q)  //normalization method
     {
         double sum = 0;
-        for (int i = 0; i < q.length; i++)
-            sum += Math.pow(q[i], 2);
+        for (double qi : q)
+            sum += Math.pow(qi, 2);
         return Math.sqrt(sum) == 0 ? 0 : 1 / Math.sqrt(sum);
     }
 }
