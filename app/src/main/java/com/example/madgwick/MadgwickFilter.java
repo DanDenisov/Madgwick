@@ -2,8 +2,8 @@ package com.example.madgwick;
 
 class MadgwickFilter
 {
-    static protected double[] a, w, m, b = {0, 1, 0, 1};
-    static protected double dt;
+    static double[] a, w, m, b = {0, 1, 0, 1};
+    static double dt;
     static private double[] q_est;
     static private double[] dq_est, dq_w, dq_error;
     static private double betta = 1, sigma = 1;

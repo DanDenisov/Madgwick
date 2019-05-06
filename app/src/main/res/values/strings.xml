@@ -4,6 +4,7 @@
 
     <string name="app_name">Madgwick</string>
 
+    <string name="error">Oops!</string>
     <string name="categories">Choose category</string>
     <string name="specs">Specifications</string>
     <string name="help">Information</string>
@@ -21,4 +22,5 @@
     <string name="z">Z: %1$.5f</string>
 
     <string name="directory">/Madgwick Filter</string>
+    <string name="saved_to">%1$s</string>
 </resources>

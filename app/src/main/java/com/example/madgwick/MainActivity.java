@@ -1,19 +1,26 @@
 package com.example.madgwick;
 
-import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.SensorManager;
-import android.support.v4.content.ContextCompat;
+import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity
 {
     protected Sensors sensors_inst;
+    protected TextView path;
+
+    Button button_start, button_info;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState)
@@ -21,29 +28,70 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Sensors.sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        sensors_inst = new Sensors();
+        sensors_inst = new Sensors(this, this);
 
-        final Button button_info = findViewById(R.id.Info);
+        sensors_inst.X = findViewById(R.id.X);
+        sensors_inst.Y = findViewById(R.id.Y);
+        sensors_inst.Z = findViewById(R.id.Z);
+
+        path = findViewById(R.id.saved_to);
+
+        button_info = findViewById(R.id.Info);
         button_info.setOnClickListener(new View.OnClickListener()
         {
             public void onClick(View v)
             {
+                Bundle b = new Bundle();
+                b.putString("type", "info");
+
                 Dialogs msg = new Dialogs();
-                msg.show(getFragmentManager(), "dlg");
+                msg.setArguments(b);
+                msg.show(getFragmentManager(), "dlg1");
             }
         });
 
-        final Button button_start = findViewById(R.id.Start);
+        button_start = findViewById(R.id.Start);
         button_start.setOnClickListener(new View.OnClickListener()
         {
             public void onClick(View v)
             {
-                if (button_start.getText() == "Start")
+                if (button_start.getText().toString().equals("Start"))
                 {
                     Sensors.sensorManager.registerListener(sensors_inst, Sensors.acc, SensorManager.SENSOR_DELAY_NORMAL);
                     Sensors.sensorManager.registerListener(sensors_inst, Sensors.gyr, SensorManager.SENSOR_DELAY_NORMAL);
                     Sensors.sensorManager.registerListener(sensors_inst, Sensors.mag, SensorManager.SENSOR_DELAY_NORMAL);
+
+                    try
+                    {
+                        String filepath = Environment.getExternalStorageDirectory().getPath();
+                        File folder = new File(filepath, getString(R.string.directory));
+                        if (!folder.exists())
+                        {
+                            if (!folder.mkdirs())
+                            {
+                                Bundle b = new Bundle();
+                                b.putString("type", "error");
+                                b.putString("desc", "Could not create a folder.");
+
+                                Dialogs msg = new Dialogs();
+                                msg.setArguments(b);
+                                msg.show(getFragmentManager(), "dlg2");
+                            }
+                        }
+
+                        Calendar time = Calendar.getInstance();
+                        String filename = time.get(Calendar.HOUR) + ":" + time.get(Calendar.MINUTE) + ":" + time.get(Calendar.SECOND) +
+                                "_" + time.get(Calendar.DAY_OF_MONTH) + "-" + time.get(Calendar.MONTH) + "-" + time.get(Calendar.YEAR) + ".txt";
+
+                        File file = new File(folder, "/" + filename);
+                        Sensors.writer = new FileWriter(file);
+
+                        path.setText(getString(R.string.saved_to, "Files are saved to:\n" + folder.getAbsolutePath()));
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
 
                     button_start.setText(R.string.btn_stop);
                 }
@@ -51,9 +99,44 @@ public class MainActivity extends AppCompatActivity
                 {
                     Sensors.sensorManager.unregisterListener(sensors_inst);
 
+                    try
+                    {
+                        Sensors.writer.close();
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+
                     button_start.setText(R.string.btn_start);
                 }
             }
         });
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        if (!button_start.getText().toString().equals("Start"))
+        {
+            Sensors.sensorManager.registerListener(sensors_inst, Sensors.acc, SensorManager.SENSOR_DELAY_NORMAL);
+            Sensors.sensorManager.registerListener(sensors_inst, Sensors.gyr, SensorManager.SENSOR_DELAY_NORMAL);
+            Sensors.sensorManager.registerListener(sensors_inst, Sensors.mag, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        Sensors.sensorManager.unregisterListener(sensors_inst);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        if (requestCode == R.integer.REQUEST_WRITE_EXTERNAL && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            sensors_inst.WriteToFile(sensors_inst.content);
     }
 }

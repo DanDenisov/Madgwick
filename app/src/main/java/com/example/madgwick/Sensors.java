@@ -1,57 +1,71 @@
 package com.example.madgwick;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Calendar;
 
-public class Sensors extends MainActivity implements SensorEventListener
+public class Sensors implements SensorEventListener
 {
-    static protected SensorManager sensorManager;
-    static protected Sensor acc, gyr, mag;
+    private Activity activity;
+    private Context context;
 
-    static public String accSpec, gyrSpec;
+    static SensorManager sensorManager;
+    static Sensor gyr, acc, mag;
+    static String gyrSpec, accSpec, magSpec;
 
-    static public Boolean InvokeFiltration;
-    static public int sensors_count;
-    static public int response_count;
-    static private long t_prev;
+    private Boolean InvokeFiltration = false;
+    private Boolean gyrQueried = false, accQueried = false, magQueried = false;
+    private long t_prev;
 
-    protected TextView X, Y, Z;
-    private static final double RadToDeg = 180 / Math.PI;
-    private static String content;
+    TextView X, Y, Z;
+    static private final double RadToDeg = 180 / Math.PI;
+    static FileWriter writer;
+    String content;
 
-    public Sensors()
+    Sensors(Context c, Activity a)
     {
-        acc = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (acc != null)
-            sensors_count++;
+        activity = a;
+        context = c;
+
+        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+
         gyr = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         if (gyr != null)
-            sensors_count++;
+        {
+            gyrSpec = "Name: " + gyr.getName() + "\nVendor: " + gyr.getVendor() +
+                    "\nVersion: " + gyr.getVersion() + "\nResolution: " + gyr.getResolution();
+        }
+        else
+            gyrSpec = "Not presented.";
+
+        acc = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (acc != null)
+        {
+            accSpec = "Name: " + acc.getName() + "\nVendor: " + acc.getVendor() +
+                    "\nVersion: " + acc.getVersion() + "\nResolution: " + acc.getResolution();
+        }
+        else
+            accSpec = "Not presented.";
+
         mag = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         if (mag != null)
-            sensors_count++;
-
-        accSpec = "Name: " + acc.getName() + "\nVendor: " + acc.getVendor() +
-                "\nVersion: " + acc.getVersion() + "\nResolution: " + acc.getResolution();
-        gyrSpec = "Name: " + gyr.getName() + "\nVendor: " + gyr.getVendor() +
-                "\nVersion: " + gyr.getVersion() + "\nResolution: " + gyr.getResolution();
-
-        X = findViewById(R.id.X);
-        Y = findViewById(R.id.Y);
-        Z = findViewById(R.id.Z);
+        {
+            magSpec = "Name: " + mag.getName() + "\nVendor: " + mag.getVendor() +
+                    "\nVersion: " + mag.getVersion() + "\nResolution: " + mag.getResolution();
+        }
+        else
+            magSpec = "Not presented.";
     }
 
     @Override
@@ -63,7 +77,7 @@ public class Sensors extends MainActivity implements SensorEventListener
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
-        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
+        if (!gyrQueried && event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
         {
             MadgwickFilter.w = new double[] {0, event.values[0], event.values[1], event.values[2]};
             if (InvokeFiltration)
@@ -73,96 +87,57 @@ public class Sensors extends MainActivity implements SensorEventListener
             }
             else
                 t_prev = event.timestamp;
-            response_count++;
+            gyrQueried = true;
         }
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+        if (!accQueried && event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
         {
             MadgwickFilter.a = new double[] {0, event.values[0], event.values[1], event.values[2]};
-            response_count++;
+            accQueried = true;
         }
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+        if (!magQueried && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
         {
             MadgwickFilter.m = new double[] {0, event.values[0], event.values[1], event.values[2]};
-            response_count++;
+            magQueried = true;
         }
 
-        if (InvokeFiltration && response_count == sensors_count)
+        if (InvokeFiltration && gyrQueried && accQueried && magQueried)
         {
             double[] filtrated = MadgwickFilter.Filtrate();
 
             //outputting results on the screen
-            X.setText(getString(R.string.x, filtrated[0] * RadToDeg));
-            Y.setText(getString(R.string.y, filtrated[1] * RadToDeg));
-            Z.setText(getString(R.string.z, filtrated[2] * RadToDeg));
+            X.setText(context.getString(R.string.x, filtrated[0] * RadToDeg));
+            Y.setText(context.getString(R.string.y, filtrated[1] * RadToDeg));
+            Z.setText(context.getString(R.string.z, filtrated[2] * RadToDeg));
 
             //writing results to a file
             content = event.timestamp / 1000000 + "," + filtrated[0] * RadToDeg + "," + filtrated[1] * RadToDeg + "," + filtrated[2] * RadToDeg + "\n";
             WriteToFile(content);
 
-            response_count = 0;
+            //drop state
+            gyrQueried = accQueried = magQueried = false;
         }
 
         InvokeFiltration = true;
     }
 
-    @Override
-    protected void onResume()
+    void WriteToFile(String data)
     {
-        super.onResume();
-        sensorManager.registerListener(this, acc, SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(this, gyr, SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(this, mag, SensorManager.SENSOR_DELAY_NORMAL);
-    }
-
-    @Override
-    protected void onPause()
-    {
-        super.onPause();
-        sensorManager.unregisterListener(this);
-    }
-
-    protected void WriteToFile(String data)
-    {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
         {
-            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, 0);
+            ActivityCompat.requestPermissions(activity, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    context.getResources().getInteger(R.integer.REQUEST_WRITE_EXTERNAL));
         }
         else
         {
             try
             {
-                String filepath = Environment.getExternalStorageDirectory().getPath();
-                File folder = new File(filepath, getString(R.string.directory));
-                if (!folder.exists())
-                    folder.mkdirs();
-
-                Calendar time = Calendar.getInstance();
-                File file = new File(folder, "/" + time.get(Calendar.HOUR) + ":" + time.get(Calendar.MINUTE) + ":" + time.get(Calendar.SECOND) +
-                        "_" + time.get(Calendar.DAY_OF_MONTH) + "-" + time.get(Calendar.MONTH) + "-" + time.get(Calendar.YEAR) + ".txt");
-
-                FileWriter writer = new FileWriter(file);
                 writer.append(data);
                 writer.flush();
-                writer.close();
             }
             catch (IOException e)
             {
                 e.printStackTrace();
             }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
-    {
-        switch (requestCode)
-        {
-            case R.integer.REQUEST_WRITE_EXTERNAL:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
-                    WriteToFile(content);
-                }
-                break;
         }
     }
 }
