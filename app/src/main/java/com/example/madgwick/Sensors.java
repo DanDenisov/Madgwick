@@ -20,7 +20,11 @@ public class Sensors implements SensorEventListener
     private Activity activity;
     private Context context;
 
-    static SensorManager sensorManager;
+    static Boolean isSpeedChanged = false;
+    static Boolean isBeingMonitored = false;
+
+    static int sensor_speed = 200000;
+    private SensorManager sensorManager;
     static Sensor gyr, acc, mag;
     static String gyrSpec, accSpec, magSpec;
 
@@ -77,6 +81,14 @@ public class Sensors implements SensorEventListener
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
+        if (isSpeedChanged)
+        {
+            UnregisterSensors();
+            RegisterSensors();
+
+            isSpeedChanged = false;
+        }
+
         if (!gyrQueried && event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
         {
             MadgwickFilter.w = new double[] {0, event.values[0], event.values[1], event.values[2]};
@@ -118,6 +130,18 @@ public class Sensors implements SensorEventListener
         }
 
         InvokeFiltration = true;
+    }
+
+    void RegisterSensors()
+    {
+        sensorManager.registerListener(this, acc, sensor_speed);
+        sensorManager.registerListener(this, gyr, sensor_speed);
+        sensorManager.registerListener(this, mag, sensor_speed);
+    }
+
+    void UnregisterSensors()
+    {
+        sensorManager.unregisterListener(this);
     }
 
     void WriteToFile(String data)

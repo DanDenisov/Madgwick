@@ -4,8 +4,9 @@
 
     <string name="app_name">Madgwick</string>
 
-    <string name="error">Oops!</string>
     <string name="categories">Choose category</string>
+    <string name="rates">Choose measuring rate</string>
+    <string name="error">Oops!</string>
     <string name="specs">Specifications</string>
     <string name="help">Information</string>
     <string name="help_content">This program is designed to retrieve current orientation from gyroscope, accelerometer and magnetometer using Madgwick filter.\n\n© 2019 Daniil Denisov</string>
@@ -15,12 +16,26 @@
     <string name="btn_info">Info</string>
     <string name="btn_start">Start</string>
     <string name="btn_stop">Stop</string>
+    <string name="btn_speed">Speed</string>
 
     <string name="eulers">Eulers:</string>
-    <string name="x">X: %1$.5f</string>
-    <string name="y">Y: %1$.5f</string>
-    <string name="z">Z: %1$.5f</string>
+    <string name="x">X: %.5f</string>
+    <string name="y">Y: %.5f</string>
+    <string name="z">Z: %.5f</string>
 
     <string name="directory">/Madgwick Filter</string>
-    <string name="saved_to">%1$s</string>
+    <string name="saved_to">%s</string>
+
+
+    <string-array name="info_options">
+        <item>Sensors\' specs</item>
+        <item>Help &amp; Credits</item>
+    </string-array>
+
+    <string-array name="speed_options">
+        <item>Slow (200 ms)</item>
+        <item>Normal (60 ms)</item>
+        <item>Fast (20 ms)</item>
+        <item>Fastest (10 ms)</item>
+    </string-array>
 </resources>

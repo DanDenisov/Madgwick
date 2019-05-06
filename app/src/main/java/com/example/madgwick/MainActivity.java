@@ -1,7 +1,6 @@
 package com.example.madgwick;
 
 import android.content.pm.PackageManager;
-import android.hardware.SensorManager;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -17,10 +16,10 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity
 {
-    protected Sensors sensors_inst;
-    protected TextView path;
+    private Sensors sensors_inst;
+    private TextView path;
 
-    Button button_start, button_info;
+    Button button_start, button_info, button_speed;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState)
@@ -33,12 +32,17 @@ public class MainActivity extends AppCompatActivity
         sensors_inst.X = findViewById(R.id.X);
         sensors_inst.Y = findViewById(R.id.Y);
         sensors_inst.Z = findViewById(R.id.Z);
+        //sensors_inst.X.setText(getString(R.string.x, null));
+        //sensors_inst.Y.setText(getString(R.string.y, null));
+        //sensors_inst.Z.setText(getString(R.string.z, null));
 
         path = findViewById(R.id.saved_to);
+        //path.setText(getString(R.string.saved_to, ""));
 
         button_info = findViewById(R.id.Info);
         button_info.setOnClickListener(new View.OnClickListener()
         {
+            @Override
             public void onClick(View v)
             {
                 Bundle b = new Bundle();
@@ -53,13 +57,13 @@ public class MainActivity extends AppCompatActivity
         button_start = findViewById(R.id.Start);
         button_start.setOnClickListener(new View.OnClickListener()
         {
+            @Override
             public void onClick(View v)
             {
-                if (button_start.getText().toString().equals("Start"))
+                if (!Sensors.isBeingMonitored)
                 {
-                    Sensors.sensorManager.registerListener(sensors_inst, Sensors.acc, SensorManager.SENSOR_DELAY_NORMAL);
-                    Sensors.sensorManager.registerListener(sensors_inst, Sensors.gyr, SensorManager.SENSOR_DELAY_NORMAL);
-                    Sensors.sensorManager.registerListener(sensors_inst, Sensors.mag, SensorManager.SENSOR_DELAY_NORMAL);
+                    sensors_inst.RegisterSensors();
+                    Sensors.isBeingMonitored = true;
 
                     try
                     {
@@ -97,7 +101,8 @@ public class MainActivity extends AppCompatActivity
                 }
                 else
                 {
-                    Sensors.sensorManager.unregisterListener(sensors_inst);
+                    sensors_inst.UnregisterSensors();
+                    Sensors.isBeingMonitored = false;
 
                     try
                     {
@@ -112,25 +117,36 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+
+        button_speed = findViewById(R.id.Speed);
+        button_speed.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Bundle b = new Bundle();
+                b.putString("type", "speed");
+
+                Dialogs msg = new Dialogs();
+                msg.setArguments(b);
+                msg.show(getFragmentManager(), "dlg3");
+            }
+        });
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
-        if (!button_start.getText().toString().equals("Start"))
-        {
-            Sensors.sensorManager.registerListener(sensors_inst, Sensors.acc, SensorManager.SENSOR_DELAY_NORMAL);
-            Sensors.sensorManager.registerListener(sensors_inst, Sensors.gyr, SensorManager.SENSOR_DELAY_NORMAL);
-            Sensors.sensorManager.registerListener(sensors_inst, Sensors.mag, SensorManager.SENSOR_DELAY_NORMAL);
-        }
+        if (Sensors.isBeingMonitored)
+            sensors_inst.RegisterSensors();
     }
 
     @Override
     protected void onPause()
     {
         super.onPause();
-        Sensors.sensorManager.unregisterListener(sensors_inst);
+        sensors_inst.UnregisterSensors();
     }
 
     @Override
