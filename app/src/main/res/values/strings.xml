@@ -18,10 +18,14 @@
     <string name="btn_stop">Stop</string>
     <string name="btn_speed">Speed</string>
 
+    <string name="w">Angular velocities:</string>
+    <string name="a">Accelerations:</string>
+    <string name="m">Magnetic field:</string>
     <string name="eulers">Eulers:</string>
-    <string name="x">X: %.5f</string>
-    <string name="y">Y: %.5f</string>
-    <string name="z">Z: %.5f</string>
+    <string name="x">X:</string>
+    <string name="y">Y:</string>
+    <string name="z">Z:</string>
+    <string name="value">%.5f</string>
 
     <string name="directory">/Madgwick Filter</string>
     <string name="saved_to">%s</string>

@@ -32,7 +32,7 @@ public class Sensors implements SensorEventListener
     private Boolean gyrQueried = false, accQueried = false, magQueried = false;
     private long t_prev;
 
-    TextView X, Y, Z;
+    TextView X_val, Y_val, Z_val;
     static private final double RadToDeg = 180 / Math.PI;
     static FileWriter writer;
     String content;
@@ -117,9 +117,9 @@ public class Sensors implements SensorEventListener
             double[] filtrated = MadgwickFilter.Filtrate();
 
             //outputting results on the screen
-            X.setText(context.getString(R.string.x, filtrated[0] * RadToDeg));
-            Y.setText(context.getString(R.string.y, filtrated[1] * RadToDeg));
-            Z.setText(context.getString(R.string.z, filtrated[2] * RadToDeg));
+            X_val.setText(context.getString(R.string.value, filtrated[0] * RadToDeg));
+            Y_val.setText(context.getString(R.string.value, filtrated[1] * RadToDeg));
+            Z_val.setText(context.getString(R.string.value, filtrated[2] * RadToDeg));
 
             //writing results to a file
             content = event.timestamp / 1000000 + "," + filtrated[0] * RadToDeg + "," + filtrated[1] * RadToDeg + "," + filtrated[2] * RadToDeg + "\n";

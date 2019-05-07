@@ -29,15 +29,11 @@ public class MainActivity extends AppCompatActivity
 
         sensors_inst = new Sensors(this, this);
 
-        sensors_inst.X = findViewById(R.id.X);
-        sensors_inst.Y = findViewById(R.id.Y);
-        sensors_inst.Z = findViewById(R.id.Z);
-        //sensors_inst.X.setText(getString(R.string.x, null));
-        //sensors_inst.Y.setText(getString(R.string.y, null));
-        //sensors_inst.Z.setText(getString(R.string.z, null));
+        sensors_inst.X_val = findViewById(R.id.X);
+        sensors_inst.Y_val = findViewById(R.id.Y);
+        sensors_inst.Z_val = findViewById(R.id.Z);
 
         path = findViewById(R.id.saved_to);
-        //path.setText(getString(R.string.saved_to, ""));
 
         button_info = findViewById(R.id.Info);
         button_info.setOnClickListener(new View.OnClickListener()
