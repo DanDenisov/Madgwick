@@ -2,11 +2,13 @@ package com.example.madgwick;
 
 class MadgwickFilter
 {
+    static Boolean init_asmp = true;
+
     static double[] a, w, m, b = {0, 1, 0, 1};
     static double dt;
-    static private double[] q_est;
+    static double[] q_est;
     static private double[] dq_est, dq_w, dq_error;
-    static private double betta = 1, sigma = 1;
+    static private double betta = 1, sigma = 2;
     static private double norm = 0;
 
     static private double[] eulers;
@@ -14,7 +16,11 @@ class MadgwickFilter
     static double[] Filtrate()
     {
         //initial assumption
-        q_est = Product(dt, w);
+        if (init_asmp)
+        {
+            q_est = Product(dt, w);
+            init_asmp = false;
+        }
 
         //normalizing accelerometer measurements
         norm = Norm(a);
@@ -39,23 +45,21 @@ class MadgwickFilter
         //converting quaternion to Euler angles
         eulers = new double[3];
 
-        eulers[0] = Math.atan2(2*q_est[2]*q_est[3] - 2*q_est[0]*q_est[1], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[3], 2) - 1);
+        /*eulers[0] = Math.atan2(2*q_est[2]*q_est[3] - 2*q_est[0]*q_est[1], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[3], 2) - 1);
         double expr = 2*q_est[1]*q_est[3] + 2*q_est[0]*q_est[2];
         if (Math.abs(expr) > 1)
             eulers[1] = Math.signum(expr) * Math.PI / 2;
         else
             eulers[1] = -Math.asin(expr);
-        eulers[2] = Math.atan2(2*q_est[1]*q_est[2] - 2*q_est[0]*q_est[3], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[1], 2) - 1);
+        eulers[2] = Math.atan2(2*q_est[1]*q_est[2] - 2*q_est[0]*q_est[3], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[1], 2) - 1);*/
 
-            /*eulers[0] = Math.atan2(2*q_est[2]*q_est[3] + 2*q_est[0]*q_est[1], 1 - 2*Math.pow(q_est[1], 2) - 2*Math.pow(q_est[2], 2));
-
-            double expr = 2*q_est[0]*q_est[2] - 2*q_est[1]*q_est[3];
-            if (Math.abs(expr) > 1)
-                eulers[1] = Math.signum(expr) * Math.PI / 2;
-            else
-                eulers[1] = Math.asin(expr);
-
-            eulers[2] = Math.atan2(2*q_est[1]*q_est[2] + 2*q_est[0]*q_est[3], 1 - 2*Math.pow(q_est[2], 2) - 2*Math.pow(q_est[3], 2));*/
+        eulers[0] = Math.atan2(2*q_est[2]*q_est[3] + 2*q_est[0]*q_est[1], 1 - 2*Math.pow(q_est[1], 2) - 2*Math.pow(q_est[2], 2));
+        double expr = 2*q_est[0]*q_est[2] - 2*q_est[1]*q_est[3];
+        if (Math.abs(expr) > 1)
+            eulers[1] = Math.signum(expr) * Math.PI / 2;
+        else
+            eulers[1] = Math.asin(expr);
+        eulers[2] = Math.atan2(2*q_est[1]*q_est[2] + 2*q_est[0]*q_est[3], 1 - 2*Math.pow(q_est[2], 2) - 2*Math.pow(q_est[3], 2));
 
         return eulers;
     }

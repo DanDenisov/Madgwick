@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity
                     {
                         sensors_inst.RegisterSensors();
                         Sensors.isBeingMonitored = true;
+                        MadgwickFilter.init_asmp = true;
 
                         GetFile();
 
@@ -176,10 +177,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
-        if (requestCode == R.integer.REQUEST_WRITE_EXTERNAL && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        if (requestCode == getResources().getInteger(R.integer.REQUEST_WRITE_EXTERNAL) && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
             sensors_inst.RegisterSensors();
             Sensors.isBeingMonitored = true;
+            MadgwickFilter.init_asmp = true;
 
             GetFile();
 

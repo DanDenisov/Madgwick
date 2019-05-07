@@ -65,7 +65,10 @@ public class Sensors implements SensorEventListener
                     "\nVersion: " + mag.getVersion() + "\nResolution: " + mag.getResolution();
         }
         else
+        {
             magSpec = "Not presented.";
+            magQueried = true;
+        }
     }
 
     @Override
@@ -123,24 +126,31 @@ public class Sensors implements SensorEventListener
             magQueried = true;
         }
 
-        if (InvokeFiltration && gyrQueried && accQueried && magQueried)
+        if (gyrQueried && accQueried && magQueried)
         {
-            double[] filtrated = MadgwickFilter.Filtrate();
+            if (InvokeFiltration)
+            {
+                double[] filtrated = MadgwickFilter.Filtrate();
 
-            //outputting results on the screen
-            X_val.setText(context.getString(R.string.value, filtrated[0] * RadToDeg));
-            Y_val.setText(context.getString(R.string.value, filtrated[1] * RadToDeg));
-            Z_val.setText(context.getString(R.string.value, filtrated[2] * RadToDeg));
+                //outputting results on the screen
+                X_val.setText(context.getString(R.string.value, filtrated[0] * RadToDeg));
+                Y_val.setText(context.getString(R.string.value, filtrated[1] * RadToDeg));
+                Z_val.setText(context.getString(R.string.value, filtrated[2] * RadToDeg));
 
-            //writing results to a file
-            String content = event.timestamp / 1000000 + "," + filtrated[0] * RadToDeg + "," + filtrated[1] * RadToDeg + "," + filtrated[2] * RadToDeg + "\n";
-            WriteToFile(content);
+                //writing results to a file
+                String content = event.timestamp / 1000000 + "," + filtrated[0] * RadToDeg + "," + filtrated[1] * RadToDeg + "," + filtrated[2] * RadToDeg + "\n";
+                WriteToFile(content);
+            }
+            else
+            {
+                InvokeFiltration = true;
+            }
 
             //drop state
-            gyrQueried = accQueried = magQueried = false;
+            gyrQueried = accQueried = false;
+            if (mag != null)
+                magQueried = false;
         }
-
-        InvokeFiltration = true;
     }
 
     void RegisterSensors()
