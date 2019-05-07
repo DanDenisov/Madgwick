@@ -40,8 +40,34 @@ public class Dialogs extends DialogFragment
                             });
                     break;
                 case "speed":
+                    CharSequence[] options = getResources().getStringArray(R.array.speed_options);
+                    int index = 0;
+                    switch (Sensors.sensor_speed)
+                    {
+                        case 200000:
+                            index = 0;
+                            break;
+                        case 60000:
+                            index = 1;
+                            break;
+                        case 20000:
+                            index = 2;
+                            break;
+                        case 10000:
+                            index = 3;
+                            break;
+                    }
+
+                    for (int i = 0; i < options.length; i++)
+                    {
+                        if (i == index)
+                            options[i] = String.format(options[i].toString(), getString(R.string.current));
+                        else
+                            options[i] = String.format(options[i].toString(), "");
+                    }
+
                     builder.setTitle(R.string.rates)
-                            .setItems(R.array.speed_options, new DialogInterface.OnClickListener()
+                            .setItems(options, new DialogInterface.OnClickListener()
                             {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which)

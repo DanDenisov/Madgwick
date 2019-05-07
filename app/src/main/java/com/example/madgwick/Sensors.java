@@ -1,15 +1,10 @@
 package com.example.madgwick;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 
 import java.io.FileWriter;
@@ -17,7 +12,6 @@ import java.io.IOException;
 
 public class Sensors implements SensorEventListener
 {
-    private Activity activity;
     private Context context;
 
     static Boolean isSpeedChanged = false;
@@ -32,14 +26,16 @@ public class Sensors implements SensorEventListener
     private Boolean gyrQueried = false, accQueried = false, magQueried = false;
     private long t_prev;
 
+    TextView wX_val, wY_val, wZ_val;
+    TextView aX_val, aY_val, aZ_val;
+    TextView mX_val, mY_val, mZ_val;
     TextView X_val, Y_val, Z_val;
+
     static private final double RadToDeg = 180 / Math.PI;
     static FileWriter writer;
-    String content;
 
-    Sensors(Context c, Activity a)
+    Sensors(Context c)
     {
-        activity = a;
         context = c;
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -99,16 +95,31 @@ public class Sensors implements SensorEventListener
             }
             else
                 t_prev = event.timestamp;
+
+            wX_val.setText(context.getString(R.string.value, event.values[0]));
+            wY_val.setText(context.getString(R.string.value, event.values[1]));
+            wZ_val.setText(context.getString(R.string.value, event.values[2]));
+
             gyrQueried = true;
         }
         if (!accQueried && event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
         {
             MadgwickFilter.a = new double[] {0, event.values[0], event.values[1], event.values[2]};
+
+            aX_val.setText(context.getString(R.string.value, event.values[0]));
+            aY_val.setText(context.getString(R.string.value, event.values[1]));
+            aZ_val.setText(context.getString(R.string.value, event.values[2]));
+
             accQueried = true;
         }
         if (!magQueried && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
         {
             MadgwickFilter.m = new double[] {0, event.values[0], event.values[1], event.values[2]};
+
+            mX_val.setText(context.getString(R.string.value, event.values[0]));
+            mY_val.setText(context.getString(R.string.value, event.values[1]));
+            mZ_val.setText(context.getString(R.string.value, event.values[2]));
+
             magQueried = true;
         }
 
@@ -122,7 +133,7 @@ public class Sensors implements SensorEventListener
             Z_val.setText(context.getString(R.string.value, filtrated[2] * RadToDeg));
 
             //writing results to a file
-            content = event.timestamp / 1000000 + "," + filtrated[0] * RadToDeg + "," + filtrated[1] * RadToDeg + "," + filtrated[2] * RadToDeg + "\n";
+            String content = event.timestamp / 1000000 + "," + filtrated[0] * RadToDeg + "," + filtrated[1] * RadToDeg + "," + filtrated[2] * RadToDeg + "\n";
             WriteToFile(content);
 
             //drop state
@@ -144,24 +155,16 @@ public class Sensors implements SensorEventListener
         sensorManager.unregisterListener(this);
     }
 
-    void WriteToFile(String data)
+    private void WriteToFile(String data)
     {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+        try
         {
-            ActivityCompat.requestPermissions(activity, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
-                    context.getResources().getInteger(R.integer.REQUEST_WRITE_EXTERNAL));
+            writer.append(data);
+            writer.flush();
         }
-        else
+        catch (IOException e)
         {
-            try
-            {
-                writer.append(data);
-                writer.flush();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
         }
     }
 }

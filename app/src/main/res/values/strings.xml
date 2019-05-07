@@ -9,7 +9,17 @@
     <string name="error">Oops!</string>
     <string name="specs">Specifications</string>
     <string name="help">Information</string>
-    <string name="help_content">This program is designed to retrieve current orientation from gyroscope, accelerometer and magnetometer using Madgwick filter.\n\n© 2019 Daniil Denisov</string>
+    <string name="help_content">
+        This program is designed to retrieve current orientation from gyroscope, accelerometer and magnetometer using Madgwick filter.
+        \n\nTo start measuring, press \"Start\".
+        \nTo get sensors\' specifications, press \"Info\" -> \"Sensors\' specs\".
+        \nTo change measuring rate, press \"Speed\" and choose desired option.
+        \nTo stop measuring, press \"Stop\".
+        \n\nThe application supports sleep mode. On resume, it will continue writing data to the same file.
+        \n(Note: after resuming the sensors immediately continue working, so no actions are required)
+        \n\nWarning: the application won\'t work without the writing files permission, so it is strongly recommended to accept it.
+        \n\n© 2019 Daniil Denisov
+    </string>
 
     <string name="title">Welcome to Madgwick Filter!</string>
 
@@ -18,7 +28,7 @@
     <string name="btn_stop">Stop</string>
     <string name="btn_speed">Speed</string>
 
-    <string name="w">Angular velocities:</string>
+    <string name="w">Ang. velocities:</string>
     <string name="a">Accelerations:</string>
     <string name="m">Magnetic field:</string>
     <string name="eulers">Eulers:</string>
@@ -36,10 +46,11 @@
         <item>Help &amp; Credits</item>
     </string-array>
 
+    <string name="current">[current]</string>
     <string-array name="speed_options">
-        <item>Slow (200 ms)</item>
-        <item>Normal (60 ms)</item>
-        <item>Fast (20 ms)</item>
-        <item>Fastest (10 ms)</item>
+        <item>Slow (200 ms) %s</item>
+        <item>Normal (60 ms) %s</item>
+        <item>Fast (20 ms) %s</item>
+        <item>Fastest (10 ms) %s</item>
     </string-array>
 </resources>

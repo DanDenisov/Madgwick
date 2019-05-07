@@ -1,8 +1,11 @@
 package com.example.madgwick;
 
+import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -27,11 +30,23 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sensors_inst = new Sensors(this, this);
+        sensors_inst = new Sensors(this);
 
-        sensors_inst.X_val = findViewById(R.id.X);
-        sensors_inst.Y_val = findViewById(R.id.Y);
-        sensors_inst.Z_val = findViewById(R.id.Z);
+        sensors_inst.wX_val = findViewById(R.id.wX_val);
+        sensors_inst.wY_val = findViewById(R.id.wY_val);
+        sensors_inst.wZ_val = findViewById(R.id.wZ_val);
+
+        sensors_inst.aX_val = findViewById(R.id.aX_val);
+        sensors_inst.aY_val = findViewById(R.id.aY_val);
+        sensors_inst.aZ_val = findViewById(R.id.aZ_val);
+
+        sensors_inst.mX_val = findViewById(R.id.mX_val);
+        sensors_inst.mY_val = findViewById(R.id.mY_val);
+        sensors_inst.mZ_val = findViewById(R.id.mZ_val);
+
+        sensors_inst.X_val = findViewById(R.id.X_val);
+        sensors_inst.Y_val = findViewById(R.id.Y_val);
+        sensors_inst.Z_val = findViewById(R.id.Z_val);
 
         path = findViewById(R.id.saved_to);
 
@@ -58,42 +73,20 @@ public class MainActivity extends AppCompatActivity
             {
                 if (!Sensors.isBeingMonitored)
                 {
-                    sensors_inst.RegisterSensors();
-                    Sensors.isBeingMonitored = true;
-
-                    try
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                     {
-                        String filepath = Environment.getExternalStorageDirectory().getPath();
-                        File folder = new File(filepath, getString(R.string.directory));
-                        if (!folder.exists())
-                        {
-                            if (!folder.mkdirs())
-                            {
-                                Bundle b = new Bundle();
-                                b.putString("type", "error");
-                                b.putString("desc", "Could not create a folder.");
-
-                                Dialogs msg = new Dialogs();
-                                msg.setArguments(b);
-                                msg.show(getFragmentManager(), "dlg2");
-                            }
-                        }
-
-                        Calendar time = Calendar.getInstance();
-                        String filename = time.get(Calendar.HOUR) + ":" + time.get(Calendar.MINUTE) + ":" + time.get(Calendar.SECOND) +
-                                "_" + time.get(Calendar.DAY_OF_MONTH) + "-" + time.get(Calendar.MONTH) + "-" + time.get(Calendar.YEAR) + ".txt";
-
-                        File file = new File(folder, "/" + filename);
-                        Sensors.writer = new FileWriter(file);
-
-                        path.setText(getString(R.string.saved_to, "Files are saved to:\n" + folder.getAbsolutePath()));
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                                MainActivity.this.getResources().getInteger(R.integer.REQUEST_WRITE_EXTERNAL));
                     }
-                    catch (IOException e)
+                    else
                     {
-                        e.printStackTrace();
-                    }
+                        sensors_inst.RegisterSensors();
+                        Sensors.isBeingMonitored = true;
 
-                    button_start.setText(R.string.btn_stop);
+                        GetFile();
+
+                        button_start.setText(R.string.btn_stop);
+                    }
                 }
                 else
                 {
@@ -130,6 +123,41 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    void GetFile()
+    {
+        try
+        {
+            String filepath = Environment.getExternalStorageDirectory().getPath();
+            File folder = new File(filepath, getString(R.string.directory));
+            if (!folder.exists())
+            {
+                if (!folder.mkdirs())
+                {
+                    Bundle b = new Bundle();
+                    b.putString("type", "error");
+                    b.putString("desc", "Could not create a folder.");
+
+                    Dialogs msg = new Dialogs();
+                    msg.setArguments(b);
+                    msg.show(getFragmentManager(), "dlg2");
+                }
+            }
+
+            Calendar time = Calendar.getInstance();
+            String filename = time.get(Calendar.HOUR) + ":" + time.get(Calendar.MINUTE) + ":" + time.get(Calendar.SECOND) +
+                    "_" + time.get(Calendar.DAY_OF_MONTH) + "-" + time.get(Calendar.MONTH) + "-" + time.get(Calendar.YEAR) + ".txt";
+
+            File file = new File(folder, "/" + filename);
+            Sensors.writer = new FileWriter(file);
+
+            path.setText(getString(R.string.saved_to, "Files are saved to:\n" + folder.getAbsolutePath()));
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void onResume()
     {
@@ -149,6 +177,13 @@ public class MainActivity extends AppCompatActivity
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
         if (requestCode == R.integer.REQUEST_WRITE_EXTERNAL && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            sensors_inst.WriteToFile(sensors_inst.content);
+        {
+            sensors_inst.RegisterSensors();
+            Sensors.isBeingMonitored = true;
+
+            GetFile();
+
+            button_start.setText(R.string.btn_stop);
+        }
     }
 }
