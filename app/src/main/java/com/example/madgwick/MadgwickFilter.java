@@ -4,11 +4,11 @@ class MadgwickFilter
 {
     static Boolean init_asmp = true;
 
-    static double[] a, w, m, b = {0, 1, 0, 1};
+    static double[] a, w, m, b;
     static double dt;
     static double[] q_est;
     static private double[] dq_est, dq_w, dq_error;
-    static private double betta = 1, sigma = 2;
+    static double betta = 1, zeta = 1;
     static private double norm = 0;
 
     static private double[] eulers;
@@ -19,6 +19,9 @@ class MadgwickFilter
         if (init_asmp)
         {
             q_est = Product(dt, w);
+            norm = Norm(q_est);
+            if (norm != 0)
+                q_est = Product(norm, q_est);
             init_asmp = false;
         }
 
@@ -34,7 +37,7 @@ class MadgwickFilter
 
         //main algorithm
         GetOrientationErrorRate();
-        GetGyroscopeOrientation();
+        GetGyroscopeOrientationRate();
         Fuse();
 
         //normalizing resulting quaternion
@@ -44,14 +47,6 @@ class MadgwickFilter
 
         //converting quaternion to Euler angles
         eulers = new double[3];
-
-        /*eulers[0] = Math.atan2(2*q_est[2]*q_est[3] - 2*q_est[0]*q_est[1], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[3], 2) - 1);
-        double expr = 2*q_est[1]*q_est[3] + 2*q_est[0]*q_est[2];
-        if (Math.abs(expr) > 1)
-            eulers[1] = Math.signum(expr) * Math.PI / 2;
-        else
-            eulers[1] = -Math.asin(expr);
-        eulers[2] = Math.atan2(2*q_est[1]*q_est[2] - 2*q_est[0]*q_est[3], 2*Math.pow(q_est[0], 2) + 2*Math.pow(q_est[1], 2) - 1);*/
 
         eulers[0] = Math.atan2(2*q_est[2]*q_est[3] + 2*q_est[0]*q_est[1], 1 - 2*Math.pow(q_est[1], 2) - 2*Math.pow(q_est[2], 2));
         double expr = 2*q_est[0]*q_est[2] - 2*q_est[1]*q_est[3];
@@ -120,12 +115,13 @@ class MadgwickFilter
             dq_error = new double[] { 0, 0, 0, 0 };
     }
 
-    static private void GetGyroscopeOrientation()
+    static private void GetGyroscopeOrientationRate()
     {
         //compensating angular rate measurement error
         double[] w_error = QuatProduct(Product(2, Conjugated(q_est)), dq_error);
-        double[] w_bias = Product(sigma * dt, w_error);
+        double[] w_bias = Product(zeta * dt, w_error);
         w = Sum(w, Product(-1, w_bias));
+        w[0] = 0;
 
         //retrieving orientation change rate based on gyroscope measurement
         dq_w = QuatProduct(Product(0.5, q_est), w);

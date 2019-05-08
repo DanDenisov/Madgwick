@@ -40,6 +40,11 @@
     <string name="directory">/Madgwick Filter</string>
     <string name="saved_to">%s</string>
 
+    <string name="gains">Filter gains:</string>
+    <string name="betta">β:</string>
+    <string name="zeta">ζ:</string>
+    <string name="gain_value">%.2f</string>
+
 
     <string-array name="info_options">
         <item>Sensors\' specs</item>

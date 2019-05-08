@@ -10,19 +10,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
 {
     private Sensors sensors_inst;
-    private TextView path;
-
+    private TextView path, betta_val, zeta_val;
     Button button_start, button_info, button_speed;
+    SeekBar betta_seek, zeta_seek;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState)
@@ -49,6 +51,52 @@ public class MainActivity extends AppCompatActivity
         sensors_inst.Z_val = findViewById(R.id.Z_val);
 
         path = findViewById(R.id.saved_to);
+        betta_val = findViewById(R.id.betta_val);
+        betta_val.setText(String.format(Locale.ENGLISH,"%.2f", MadgwickFilter.betta));
+        zeta_val = findViewById(R.id.zeta_val);
+        zeta_val.setText(String.format(Locale.ENGLISH,"%.2f", MadgwickFilter.zeta));
+
+        betta_seek = findViewById(R.id.betta_seek);
+        betta_seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+            {
+                MadgwickFilter.betta = progress + 1;
+                betta_val.setText(String.format(Locale.ENGLISH,"%.2f", MadgwickFilter.betta));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        zeta_seek = findViewById(R.id.zeta_seek);
+        zeta_seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+            {
+                MadgwickFilter.zeta = progress + 1;
+                zeta_val.setText(String.format(Locale.ENGLISH,"%.2f", MadgwickFilter.zeta));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         button_info = findViewById(R.id.Info);
         button_info.setOnClickListener(new View.OnClickListener()
@@ -122,6 +170,8 @@ public class MainActivity extends AppCompatActivity
                 msg.show(getFragmentManager(), "dlg3");
             }
         });
+
+
     }
 
     void GetFile()
