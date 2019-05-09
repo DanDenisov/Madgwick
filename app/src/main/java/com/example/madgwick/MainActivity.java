@@ -8,6 +8,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -195,11 +196,12 @@ public class MainActivity extends AppCompatActivity
             }
 
             Calendar time = Calendar.getInstance();
-            String filename = time.get(Calendar.HOUR) + ":" + time.get(Calendar.MINUTE) + ":" + time.get(Calendar.SECOND) +
-                    "_" + time.get(Calendar.DAY_OF_MONTH) + "-" + time.get(Calendar.MONTH) + "-" + time.get(Calendar.YEAR) + ".txt";
+            String filename = DateFormat.format("HH:mm:ss_dd-MM-yyyy", time).toString() + ".csv";
 
             File file = new File(folder, "/" + filename);
             Sensors.writer = new FileWriter(file);
+            Sensors.writer.append("Timestamp,X,Y,Z\n");
+            Sensors.writer.flush();
 
             path.setText(getString(R.string.saved_to, "Files are saved to:\n" + folder.getAbsolutePath()));
         }
